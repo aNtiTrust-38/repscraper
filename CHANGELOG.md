@@ -13,3 +13,5 @@
 - Reddit API integration milestone: RedditScraper.fetch_batch implemented, TDD integration tests passing, error handling and config support per instructions.md.
 
 - Logging and error handling in subprocesses is robust. Tests for log file creation are marked xfail on macOS due to temp directory isolation/subprocess file visibility issues. This is not a logic bug and is documented for future maintainers.
+
+- Persistent deduplication (SQLite) is now integrated into the batch workflow, replacing in-memory deduplication. All core and integration tests pass except for expected failures. Documented for production reliability.

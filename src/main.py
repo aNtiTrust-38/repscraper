@@ -7,6 +7,7 @@ from src.notifications.telegram_bot import TelegramBot
 import datetime
 from src.scrapers.reddit_scraper import RedditScraper
 import time
+from src.database.crud import PersistentDeduper
 
 REQUIRED_ENV_VARS = [
     'REDDIT_CLIENT_ID',
@@ -91,22 +92,22 @@ def run_batch():
     allowed_flairs = ['QC', 'Haul', 'Review']
     min_upvotes = 5
     min_comments = 2
-    processed_ids = {'5'}  # Simulate already processed (replace with real deduplication in prod)
-    def is_duplicate(post_id):
-        return post_id in processed_ids
+    # Persistent deduplication
+    deduper = PersistentDeduper('data/fashionreps.db')
     # 1. Flair filter
     filtered = filter_by_flair(posts, allowed_flairs)
     # 2. Quality filter
     now = datetime.datetime.utcnow()
     filtered = basic_filter(filtered, min_upvotes, min_comments, max_age_hours=24, now=now)
-    # 3. Deduplication
-    filtered = [p for p in filtered if not is_duplicate(p['id'])]
-    # 4. Notification
+    # 3. Deduplication (persistent)
+    filtered = [p for p in filtered if not deduper.is_duplicate(p['id'])]
+    # 4. Notification and mark as processed
     token = os.environ.get('TELEGRAM_BOT_TOKEN', 'dummy')
     chat_id = os.environ.get('TELEGRAM_CHAT_ID', 'dummy')
     bot = TelegramBot(token, chat_id)
     for post in filtered:
         bot.send_item_notification(post)
+        deduper.mark_processed(post['id'])
 
 if __name__ == '__main__':
     setup_logging()

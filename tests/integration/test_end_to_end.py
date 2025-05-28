@@ -70,12 +70,14 @@ def test_end_to_end_flair_filtering():
 def test_batch_processing_workflow(mocker):
     """Test batch processing: scrapes, filters, deduplicates, and notifies only new, relevant posts."""
     # Mock scraping: return a batch of posts (some new, some duplicate, some irrelevant)
+    import datetime
+    now = datetime.datetime.utcnow()
     posts = [
-        {'id': '1', 'flair': 'QC', 'upvotes': 10, 'comments': 3, 'created_utc': 0, 'author': 'user1', 'title': 'QC Shoes', 'platform': 'taobao', 'url': 'https://item.taobao.com/item.htm?id=1'},  # New, relevant
-        {'id': '2', 'flair': 'Haul', 'upvotes': 5, 'comments': 2, 'created_utc': 0, 'author': 'user2', 'title': 'Haul Bag', 'platform': 'weidian', 'url': 'https://weidian.com/item.html?id=2'},  # New, relevant
-        {'id': '3', 'flair': 'W2C', 'upvotes': 8, 'comments': 2, 'created_utc': 0, 'author': 'user3', 'title': 'W2C Shirt', 'platform': '1688', 'url': 'https://detail.1688.com/offer/3.html'},  # Irrelevant flair
-        {'id': '4', 'flair': 'QC', 'upvotes': 2, 'comments': 1, 'created_utc': 0, 'author': 'user4', 'title': 'Low Upvotes', 'platform': 'yupoo', 'url': 'https://x.yupoo.com/albums/4'},  # Fails filter
-        {'id': '5', 'flair': 'QC', 'upvotes': 10, 'comments': 3, 'created_utc': 0, 'author': 'user5', 'title': 'Duplicate', 'platform': 'pandabuy', 'url': 'https://pandabuy.com/item/5'},  # Duplicate
+        {'id': '1', 'flair': 'QC', 'upvotes': 10, 'comments': 3, 'created_utc': now, 'author': 'user1', 'title': 'QC Shoes', 'platform': 'taobao', 'url': 'https://item.taobao.com/item.htm?id=1'},  # New, relevant
+        {'id': '2', 'flair': 'Haul', 'upvotes': 5, 'comments': 2, 'created_utc': now, 'author': 'user2', 'title': 'Haul Bag', 'platform': 'weidian', 'url': 'https://weidian.com/item.html?id=2'},  # New, relevant
+        {'id': '3', 'flair': 'W2C', 'upvotes': 8, 'comments': 2, 'created_utc': now, 'author': 'user3', 'title': 'W2C Shirt', 'platform': '1688', 'url': 'https://detail.1688.com/offer/3.html'},  # Irrelevant flair
+        {'id': '4', 'flair': 'QC', 'upvotes': 2, 'comments': 1, 'created_utc': now, 'author': 'user4', 'title': 'Low Upvotes', 'platform': 'yupoo', 'url': 'https://x.yupoo.com/albums/4'},  # Fails filter
+        {'id': '5', 'flair': 'QC', 'upvotes': 10, 'comments': 3, 'created_utc': now, 'author': 'user5', 'title': 'Duplicate', 'platform': 'pandabuy', 'url': 'https://pandabuy.com/item/5'},  # Duplicate
     ]
     allowed_flairs = ['QC', 'Haul', 'Review']
     min_upvotes = 5
@@ -94,7 +96,7 @@ def test_batch_processing_workflow(mocker):
     # 1. Flair filter
     filtered = filter_by_flair(posts, allowed_flairs)
     # 2. Quality filter
-    filtered = basic_filter(filtered, min_upvotes, min_comments, max_age_hours=24, now=0)
+    filtered = basic_filter(filtered, min_upvotes, min_comments, max_age_hours=24, now=now)
     # 3. Deduplication
     filtered = [p for p in filtered if not is_duplicate(p['id'])]
     # 4. Notification

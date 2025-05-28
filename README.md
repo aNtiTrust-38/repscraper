@@ -16,6 +16,7 @@ Personal Reddit scraper for r/FashionReps with intelligent link extraction and T
 - **Robust logging:** All errors and important events are logged to `logs/app.log` with rotation and retention (loguru)
 - **Secure secrets handling:** Secrets are never logged or exposed, verified by automated tests
 - [x] Reddit API integration: The RedditScraper now supports authenticated batch fetching from r/FashionReps, with error handling and batch size configuration per instructions.md. This is fully covered by integration tests using TDD.
+- [x] Persistent deduplication (SQLite) is now integrated into the batch workflow, ensuring no duplicate notifications across restarts. All core and integration tests pass except for expected failures. See CHANGELOG for details.
 
 **Detailed Requirements: See instructions.md sections 'Platform Priority Matrix' and 'Link Conversion Priority'**
 
