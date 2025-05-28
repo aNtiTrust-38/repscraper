@@ -20,3 +20,18 @@ def test_basic_post_filtering():
     filtered = basic_filter(posts, min_upvotes=5, min_comments=2, max_age_hours=24, now=now)
     assert len(filtered) == 1
     assert filtered[0]['id'] == '1'
+
+def test_quality_scoring():
+    from src.processors.quality_filter import calculate_quality_score
+    post = {
+        'upvotes': 50,
+        'num_comments': 10,
+        'author': {'link_karma': 5000},
+        'image_urls': ['img1.jpg'],
+        'selftext': 'A detailed review of a great item.' * 10,
+        'all_awardings': [1, 2],
+    }
+    score = calculate_quality_score(post)
+    assert 0 <= score <= 1
+    # Should be high due to good engagement, author, content, and awards
+    assert score > 0.7
