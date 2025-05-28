@@ -14,6 +14,7 @@ Personal Reddit scraper for r/FashionReps with intelligent link extraction and T
 - **Duplicate prevention:** In-memory (MVP) and persistent (SQLite) deduplication supported
 - **Quality scoring:** Posts are scored for relevance and quality before notification
 - **Robust logging:** All errors and important events are logged to `logs/app.log` with rotation and retention (loguru)
+- **Secure secrets handling:** Secrets are never logged or exposed, verified by automated tests
 
 **Detailed Requirements: See instructions.md sections 'Platform Priority Matrix' and 'Link Conversion Priority'**
 
@@ -74,8 +75,32 @@ Personal Reddit scraper for r/FashionReps with intelligent link extraction and T
 - All logs are written to `logs/app.log` (configurable via `LOG_FILE` env var).
 - Log rotation and retention are enabled (10MB per file, 5 days retention).
 - Errors and important events are logged with stack traces.
-- **Secrets are never logged.**
+- **Secrets are never logged or exposed. This is verified by automated tests.**
 - **Best practice:** Always load secrets from environment variables or secure config files. Never log or print secrets.
+
+## Health Monitoring & Alerting
+
+- The system includes a periodic health check (default: every 60 seconds) that monitors core dependencies (e.g., database, API connectivity).
+- Health check failures (e.g., DB unreachable) trigger a Telegram alert if alerting is enabled.
+- **Only critical errors** (not warnings or recoverable issues) trigger Telegram alerts.
+- All health check events (start, success, failure) are logged to `logs/app.log`.
+- Health monitoring and alerting can be configured in `config.yaml` under the `health` section:
+  ```yaml
+  health:
+    enabled: true
+    port: 8000
+    telegram_alerts: true
+    discord_webhook: ""
+    pushbullet_token: ""
+  ```
+- To enable/disable Telegram alerts, set `telegram_alerts` in `config.yaml` or use the `TELEGRAM_ALERT_ON_ERROR` environment variable (`1`/`true` to enable).
+- The health check interval can be customized by calling `start_periodic_health_check(interval_sec=YOUR_INTERVAL)` in `src/notifications/health_monitor.py`.
+- To test health monitoring, run:
+  ```bash
+  python src/notifications/health_monitor.py
+  # Or run the full app and simulate a failure
+  ```
+- All health check and alert events are logged for auditing and troubleshooting.
 
 ## Telegram Bot Registration
 
@@ -93,7 +118,7 @@ Personal Reddit scraper for r/FashionReps with intelligent link extraction and T
   - Platform priorities and weights
   - Jadeship API and agent priorities
   - Database and logging settings
-  - Health monitoring and alerting
+  - **Health monitoring and alerting (see `health` section for options)**
 
 ## Development
 - All core and advanced features (link extraction, filtering, notification formatting, duplicate prevention, quality scoring) are covered by tests and implemented using TDD.
