@@ -23,3 +23,15 @@ def test_duplicate_prevention():
     assert not is_duplicate(post_id, processed_ids)
     mark_processed(post_id, processed_ids)
     assert is_duplicate(post_id, processed_ids)
+
+def test_persistent_duplicate_prevention(tmp_path):
+    from src.database.crud import PersistentDeduper
+    db_path = tmp_path / "test.db"
+    deduper = PersistentDeduper(str(db_path))
+    post_id = 'abc123'
+    assert not deduper.is_duplicate(post_id)
+    deduper.mark_processed(post_id)
+    assert deduper.is_duplicate(post_id)
+    # Simulate restart
+    deduper2 = PersistentDeduper(str(db_path))
+    assert deduper2.is_duplicate(post_id)
