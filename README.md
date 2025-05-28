@@ -126,3 +126,4 @@ Personal Reddit scraper for r/FashionReps with intelligent link extraction and T
 - In-memory and persistent deduplication are both supported.
 - The system is ready for end-to-end integration and production deployment.
 [Development setup following instructions.md implementation guidelines]
+- Note: Some integration tests for log file creation are marked xfail on macOS due to temp directory isolation; this is not a logic bug but an environment limitation. See CHANGELOG for details.
