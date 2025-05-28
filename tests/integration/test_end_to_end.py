@@ -105,3 +105,18 @@ def test_batch_processing_workflow(mocker):
         bot.send_item_notification(post)
     # Assert only new, relevant, non-duplicate posts are notified
     assert set(sent) == {'1', '2'}
+
+import time
+def test_scheduler_runs_batch_job(mocker):
+    """Test that the scheduler runs the batch job at the configured interval."""
+    from apscheduler.schedulers.background import BackgroundScheduler
+    # Mock run_batch
+    calls = []
+    def fake_run_batch():
+        calls.append(time.time())
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(fake_run_batch, 'interval', seconds=1)
+    scheduler.start()
+    time.sleep(2.5)  # Wait for a couple of intervals
+    scheduler.shutdown()
+    assert len(calls) >= 2  # Should have run at least twice

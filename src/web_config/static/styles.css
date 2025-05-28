@@ -1,0 +1,109 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f7f8fa;
+    margin: 0;
+    color: #222;
+}
+header {
+    background: #2d3e50;
+    color: #fff;
+    padding: 1.5rem 0;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    justify-content: center;
+}
+.tab {
+    background: none;
+    border: none;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    color: #2d3e50;
+    border-bottom: 3px solid transparent;
+    transition: border 0.2s, color 0.2s;
+}
+.tab.active, .tab:focus {
+    border-bottom: 3px solid #0077ff;
+    color: #0077ff;
+    outline: none;
+}
+main {
+    max-width: 700px;
+    margin: 2rem auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    padding: 2rem;
+}
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
+form label {
+    display: block;
+    margin: 1rem 0 0.3rem 0;
+    font-weight: 500;
+}
+input, select, textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #cfd8dc;
+    border-radius: 4px;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    box-sizing: border-box;
+}
+input[type="checkbox"] {
+    width: auto;
+    margin-right: 0.5rem;
+}
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 2rem;
+}
+button {
+    background: #0077ff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+button:hover, button:focus {
+    background: #005fcc;
+}
+#form-status {
+    margin-left: 1rem;
+    font-weight: 500;
+    min-width: 120px;
+}
+@media (max-width: 800px) {
+    main {
+        padding: 1rem;
+    }
+    .tabs {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .tab {
+        width: 100%;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+    }
+}
+.input-error {
+    border: 2px solid #e74c3c !important;
+    background: #fff6f6 !important;
+} 

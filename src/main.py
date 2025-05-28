@@ -8,6 +8,7 @@ import datetime
 from src.scrapers.reddit_scraper import RedditScraper
 import time
 from src.database.crud import PersistentDeduper
+from apscheduler.schedulers.background import BackgroundScheduler
 
 REQUIRED_ENV_VARS = [
     'REDDIT_CLIENT_ID',
@@ -109,11 +110,16 @@ def run_batch():
         bot.send_item_notification(post)
         deduper.mark_processed(post['id'])
 
-if __name__ == '__main__':
+def main():
     setup_logging()
     try:
         validate_env()
         run_batch()  # Run the batch once on startup
+        # Schedule batch processing
+        batch_interval_hours = int(os.environ.get('BATCH_INTERVAL_HOURS', 2))
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(run_batch, 'interval', hours=batch_interval_hours, next_run_time=None)
+        scheduler.start()
         port = int(os.environ.get('HEALTH_PORT', 8000))
         server = HTTPServer(('0.0.0.0', port), HealthHandler)
         logger.info(f"Health server running on port {port}")
@@ -156,3 +162,6 @@ if __name__ == '__main__':
             pass
         time.sleep(1)
         sys.exit(1)
+
+if __name__ == '__main__':
+    main()

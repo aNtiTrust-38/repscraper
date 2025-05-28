@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FashionReps Scraper - Configuration</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <header>
+        <h1>FashionReps Scraper - Configuration</h1>
+    </header>
+    <nav class="tabs">
+        <button class="tab" data-tab="reddit">Reddit API</button>
+        <button class="tab" data-tab="telegram">Telegram Bot</button>
+        <button class="tab" data-tab="scraping">Scraping</button>
+        <button class="tab" data-tab="filters">Filters</button>
+        <button class="tab" data-tab="platforms">Platforms</button>
+        <button class="tab" data-tab="jadeship">Jadeship</button>
+        <button class="tab" data-tab="database">Database</button>
+        <button class="tab" data-tab="health">Health</button>
+        <button class="tab" data-tab="logging">Logging</button>
+    </nav>
+    <main>
+        <form id="config-form">
+            <section id="tab-reddit" class="tab-content active">
+                <h2>Reddit API Configuration</h2>
+                <label for="reddit-client-id">Client ID</label>
+                <input type="text" id="reddit-client-id" name="reddit.client_id" required minlength="14" maxlength="14" placeholder="Enter Reddit client_id">
+                <label for="reddit-client-secret">Client Secret</label>
+                <input type="password" id="reddit-client-secret" name="reddit.client_secret" required placeholder="Enter Reddit client_secret">
+                <label for="reddit-user-agent">User Agent</label>
+                <input type="text" id="reddit-user-agent" name="reddit.user_agent" required placeholder="Enter Reddit user_agent">
+                <label for="reddit-subreddits">Subreddits</label>
+                <input type="text" id="reddit-subreddits" name="reddit.subreddits" required placeholder="Comma-separated (e.g. FashionReps,RepLadies)">
+            </section>
+            <section id="tab-telegram" class="tab-content">
+                <h2>Telegram Bot Configuration</h2>
+                <label for="telegram-bot-token">Bot Token</label>
+                <input type="password" id="telegram-bot-token" name="telegram.bot_token" required placeholder="Enter Telegram bot token">
+                <label for="telegram-chat-id">Chat ID</label>
+                <input type="text" id="telegram-chat-id" name="telegram.chat_id" required placeholder="Enter Telegram chat ID">
+                <label for="telegram-notification-format">Notification Format</label>
+                <select id="telegram-notification-format" name="telegram.notification_format">
+                    <option value="rich">Rich (images/buttons)</option>
+                    <option value="simple">Simple text</option>
+                </select>
+            </section>
+            <section id="tab-scraping" class="tab-content">
+                <h2>Scraping Configuration</h2>
+                <label for="scraping-batch-interval">Batch Interval (hours)</label>
+                <input type="number" id="scraping-batch-interval" name="scraping.batch_interval_hours" min="1" max="24" required>
+                <label for="scraping-max-posts">Max Posts per Batch</label>
+                <input type="number" id="scraping-max-posts" name="scraping.max_posts_per_batch" min="10" max="200" required>
+                <label><input type="checkbox" id="scraping-enable-comments" name="scraping.enable_comments"> Enable Comments</label>
+                <label><input type="checkbox" id="scraping-monitor-new" name="scraping.monitor_new_posts"> Monitor New Posts</label>
+                <label><input type="checkbox" id="scraping-monitor-hot" name="scraping.monitor_hot_posts"> Monitor Hot Posts</label>
+            </section>
+            <section id="tab-filters" class="tab-content">
+                <h2>Quality Filters</h2>
+                <label for="filters-min-upvotes">Min Upvotes</label>
+                <input type="number" id="filters-min-upvotes" name="filters.min_upvotes" min="0" max="1000" required>
+                <label for="filters-min-comments">Min Comments</label>
+                <input type="number" id="filters-min-comments" name="filters.min_comments" min="0" max="100" required>
+                <label for="filters-max-age">Max Age (hours)</label>
+                <input type="number" id="filters-max-age" name="filters.max_age_hours" min="1" max="168" required>
+                <label for="filters-quality-threshold">Quality Threshold <span title="Minimum quality score (0.0-1.0)">(?)</span></label>
+                <input type="range" id="filters-quality-threshold" name="filters.quality_threshold" min="0" max="1" step="0.01">
+                <span id="filters-quality-threshold-value"></span>
+                <label><input type="checkbox" id="filters-exclude-deleted" name="filters.exclude_deleted"> Exclude Deleted</label>
+                <label><input type="checkbox" id="filters-exclude-removed" name="filters.exclude_removed"> Exclude Removed</label>
+            </section>
+            <section id="tab-platforms" class="tab-content">
+                <h2>Platform Priorities</h2>
+                <div class="platform-list">
+                    <label><input type="checkbox" id="platform-taobao-enabled" name="platforms.taobao.enabled"> Taobao (Priority 1, 40%)</label><br>
+                    <label><input type="checkbox" id="platform-weidian-enabled" name="platforms.weidian.enabled"> Weidian (Priority 2, 25%)</label><br>
+                    <label><input type="checkbox" id="platform-1688-enabled" name="platforms._1688.enabled"> 1688 (Priority 3, 20%)</label><br>
+                    <label><input type="checkbox" id="platform-yupoo-enabled" name="platforms.yupoo.enabled"> Yupoo (Priority 4, 10%)</label><br>
+                    <label><input type="checkbox" id="platform-others-enabled" name="platforms.others.enabled"> Others (Priority 5, 4%)</label><br>
+                    <label><input type="checkbox" id="platform-pandabuy-enabled" name="platforms.pandabuy.enabled"> Pandabuy (Priority 6, 1%)</label><br>
+                </div>
+                <div class="platform-info">
+                    <small>Priority and weight are fixed. Only enable/disable is editable.</small>
+                </div>
+            </section>
+            <section id="tab-jadeship" class="tab-content">
+                <h2>Jadeship Link Conversion</h2>
+                <label><input type="checkbox" id="jadeship-enabled" name="jadeship.enabled"> Enable Jadeship</label>
+                <label for="jadeship-api-url">API URL</label>
+                <input type="text" id="jadeship-api-url" name="jadeship.api_url" required>
+                <label for="jadeship-timeout">Timeout (seconds)</label>
+                <input type="number" id="jadeship-timeout" name="jadeship.timeout_seconds" min="5" max="60" required>
+                <label for="jadeship-retry">Retry Attempts</label>
+                <input type="number" id="jadeship-retry" name="jadeship.retry_attempts" min="1" max="5" required>
+                <label for="jadeship-default-agent">Default Agent</label>
+                <select id="jadeship-default-agent" name="jadeship.default_agent">
+                    <option value="allchinabuy">allchinabuy</option>
+                    <option value="cnfans">cnfans</option>
+                    <option value="mulebuy">mulebuy</option>
+                    <option value="wegobuy">wegobuy</option>
+                    <option value="sugargoo">sugargoo</option>
+                    <option value="cssbuy">cssbuy</option>
+                    <option value="superbuy">superbuy</option>
+                    <option value="pandabuy">pandabuy</option>
+                </select>
+                <div class="agent-priority-info">
+                    <small>Agent Priority (fixed): allchinabuy &gt; cnfans &gt; mulebuy &gt; wegobuy &gt; sugargoo &gt; cssbuy &gt; superbuy &gt; pandabuy</small>
+                </div>
+            </section>
+            <section id="tab-database" class="tab-content">
+                <h2>Database Configuration</h2>
+                <label for="database-url">Database URL</label>
+                <input type="text" id="database-url" name="database.url" required>
+                <label><input type="checkbox" id="database-backup-enabled" name="database.backup_enabled"> Enable Backups</label>
+                <label for="database-backup-interval">Backup Interval (hours)</label>
+                <input type="number" id="database-backup-interval" name="database.backup_interval_hours" min="1" max="168" required>
+                <label><input type="checkbox" id="database-cleanup-old" name="database.cleanup_old_data"> Cleanup Old Data</label>
+                <label for="database-retention-days">Retention Days</label>
+                <input type="number" id="database-retention-days" name="database.retention_days" min="30" max="365" required>
+            </section>
+            <section id="tab-health" class="tab-content">
+                <h2>Health Monitoring</h2>
+                <label><input type="checkbox" id="health-enabled" name="health.enabled"> Enable Health Monitoring</label>
+                <label><input type="checkbox" id="health-telegram-alerts" name="health.telegram_alerts"> Telegram Alerts</label>
+                <label for="health-discord-webhook">Discord Webhook</label>
+                <input type="text" id="health-discord-webhook" name="health.discord_webhook" placeholder="Optional">
+                <label for="health-pushbullet-token">Pushbullet Token</label>
+                <input type="password" id="health-pushbullet-token" name="health.pushbullet_token" placeholder="Optional">
+                <label for="health-check-interval">Check Interval (minutes)</label>
+                <input type="number" id="health-check-interval" name="health.check_interval_minutes" min="5" max="60" required>
+            </section>
+            <section id="tab-logging" class="tab-content">
+                <h2>Logging Configuration</h2>
+                <label for="logging-level">Log Level</label>
+                <select id="logging-level" name="logging.level">
+                    <option value="DEBUG">DEBUG</option>
+                    <option value="INFO">INFO</option>
+                    <option value="WARNING">WARNING</option>
+                    <option value="ERROR">ERROR</option>
+                </select>
+                <label for="logging-max-file-size">Max File Size (MB)</label>
+                <input type="number" id="logging-max-file-size" name="logging.max_file_size_mb" min="1" max="100" required>
+                <label for="logging-backup-count">Backup Count</label>
+                <input type="number" id="logging-backup-count" name="logging.backup_count" min="1" max="20" required>
+                <label><input type="checkbox" id="logging-console-output" name="logging.console_output"> Console Output</label>
+            </section>
+            <div class="form-actions">
+                <button type="button" id="save-btn">Save Config</button>
+                <button type="button" id="defaults-btn">Load Defaults</button>
+                <button type="button" id="test-btn">Test</button>
+                <span id="form-status"></span>
+            </div>
+        </form>
+    </main>
+    <script src="/static/script.js"></script>
+</body>
+</html> 

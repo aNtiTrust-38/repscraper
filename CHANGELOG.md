@@ -5,6 +5,12 @@
 - Flair filtering for Reddit posts: Only posts with allowed flairs (e.g., 'QC', 'Haul', 'Review') are processed.
 - Unit test for flair filtering in `test_processors.py`.
 - End-to-end integration test for flair filtering in `test_end_to_end.py`.
+- Added web-based configuration interface (FastAPI + HTML/JS/CSS)
+- All config variables now editable via web UI
+- Real-time validation, error highlighting, and user-friendly error messages
+- Save, load defaults, and test config from browser
+- Replaces manual YAML editing for config
+- Improved backend error handling for robust UX
 
 ### Changed
 - All flair filtering logic is implemented in `filter_by_flair` (TDD approach).

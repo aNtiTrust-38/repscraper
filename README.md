@@ -128,3 +128,31 @@ Personal Reddit scraper for r/FashionReps with intelligent link extraction and T
 - The system is ready for end-to-end integration and production deployment.
 [Development setup following instructions.md implementation guidelines]
 - Note: Some integration tests for log file creation are marked xfail on macOS due to temp directory isolation; this is not a logic bug but an environment limitation. See CHANGELOG for details.
+
+## Web-Based Configuration Interface
+
+A modern web UI is now available for all configuration. No more manual YAML editing!
+
+### How to Use
+
+1. **Install dependencies:**
+   ```sh
+   pip3 install -r requirements.txt
+   ```
+2. **Start the web config server:**
+   ```sh
+   uvicorn src.web_config.app:app --reload --host 127.0.0.1 --port 8080
+   ```
+3. **Open the UI:**
+   Go to [http://127.0.0.1:8080/static/index.html](http://127.0.0.1:8080/static/index.html) in your browser.
+
+### Features
+- Edit all config variables (Reddit, Telegram, Scraping, Filters, Platforms, Jadeship, Database, Health, Logging)
+- Real-time validation and error highlighting
+- Save, load defaults, and test config
+- No more manual YAML editing—UI writes to `src/config/config.yaml`
+
+### Troubleshooting
+- If you see a 422 error, check the highlighted fields and error messages.
+- If the server won't start, ensure all dependencies are installed and port 8080 is free.
+- For more help, see the project wiki or contact the maintainer.
