@@ -1,0 +1,72 @@
+# FashionReps Scraper - Development Rules
+
+## Core Development Principles
+- Write tests first, then code, then run tests until they pass
+- Code incrementally in small chunks with edit-test loops  
+- Chain of thought reasoning is highly encouraged
+- Keep context short by explicitly adding files via @
+- Resync/index code frequently
+- **ALWAYS reference instructions.md for technical specifications and requirements**
+
+## Test-Driven Development Workflow
+1. Planner defines small task/feature increment (referencing instructions.md)
+2. Planner writes failing test case for increment (based on instructions.md specs)
+3. Executor writes code to make test pass (following instructions.md architecture)
+4. Run test - if fails, Planner analyzes and guides fix (checking against instructions.md)
+5. Once test passes, Planner reviews changes (validates against instructions.md requirements)
+6. Repeat for next increment
+
+## Multi-Mode Operation
+- PLANNER MODE: Documentation, tests, CI/CD, project tracking (must reference instructions.md)
+- EXECUTOR MODE: Code implementation, test fixes, feature development (follow instructions.md specs)
+- COMMUNICATOR MODE: PM interface, progress reports, clarifications
+
+## Instructions.md Reference Protocol
+- **PLANNER MODE**: Must consult instructions.md before all technical decisions
+- **All test cases**: Must reference specific requirements from instructions.md  
+- **Architecture decisions**: Must align with instructions.md technical architecture
+- **Feature priorities**: Must follow instructions.md implementation phases
+- **Quality standards**: Must meet instructions.md success metrics
+
+## Problem Management
+- When problems occur, create problems.md (added to .gitignore)
+- List all relevant files and their purpose when problems encountered
+- Document error states and resolution attempts
+- Chain of thought analysis for complex issues
+- **Always check instructions.md for requirement clarification**
+
+## Allowed Commands/Operations
+- Any test commands: vitest, npm test, nr test, pytest, etc.
+- Build commands: build, tsc, npm run build, etc.
+- File operations: touch, mkdir, cp, mv, rm
+- Git operations: add, commit, push, pull, status
+- Package management: npm install, pip install, etc.
+
+## Communication Style
+- Keep answers concise and direct
+- Suggest alternative solutions when appropriate
+- Avoid unnecessary explanations
+- Prioritize technical details over generic advice
+- Use clear, actionable language
+- **Reference instructions.md sections when providing technical guidance**
+
+## File Management
+- Maintain clean project structure (per instructions.md repository structure)
+- Update .gitignore appropriately
+- Keep documentation current (extract from instructions.md as needed)
+- Use meaningful commit messages
+- Regular code indexing and syncing
+
+## Quality Standards
+- Minimum 90% test coverage (per instructions.md success metrics)
+- All tests must pass before commits
+- Code must follow PEP 8 style guidelines
+- Type hints required for all functions
+- Comprehensive error handling
+- **All implementations must comply with instructions.md specifications**
+
+## Repository Integration
+- GitHub repo: https://github.com/aNtiTrust-38/repscraper
+- Automated CI/CD pipeline required
+- Regular documentation updates (based on instructions.md)
+- Issue tracking and milestone management (following instructions.md phases)

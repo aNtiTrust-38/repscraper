@@ -1,0 +1,58 @@
+app:
+  name: "FashionReps Scraper"
+  version: "1.0.0"
+  debug: false
+
+scraping:
+  batch_interval_hours: 2
+  subreddits: ["FashionReps"]
+  max_posts_per_batch: 50
+
+filters:
+  min_upvotes: 5
+  min_comments: 2
+  max_age_hours: 24
+  quality_threshold: 0.3
+
+platforms:
+  taobao: {priority: 1, enabled: true, weight: 0.4}
+  weidian: {priority: 2, enabled: true, weight: 0.25}
+  1688: {priority: 3, enabled: true, weight: 0.2}
+  yupoo: {priority: 4, enabled: true, weight: 0.1}
+  others: {priority: 5, enabled: true, weight: 0.04}
+  pandabuy: {priority: 6, enabled: true, weight: 0.01}
+
+jadeship:
+  enabled: true
+  api_url: "https://jadeship.com/api/convert"
+  default_agent: "allchinabuy"
+  agent_priority:
+    - "allchinabuy"
+    - "cnfans"
+    - "mulebuy"
+    - "wegobuy"
+    - "sugargoo"
+    - "cssbuy"
+    - "superbuy"
+    - "pandabuy"
+  timeout_seconds: 10
+  retry_attempts: 2
+
+database:
+  url: "sqlite:///data/fashionreps.db"
+  pool_size: 5
+  echo: false
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/app.log"
+  max_bytes: 10485760
+  backup_count: 5
+
+health:
+  enabled: true
+  port: 8000
+  telegram_alerts: true
+  discord_webhook: ""
+  pushbullet_token: ""
