@@ -13,6 +13,7 @@ Personal Reddit scraper for r/FashionReps with intelligent link extraction and T
 - Docker containerized deployment
 - **Duplicate prevention:** In-memory (MVP) and persistent (SQLite) deduplication supported
 - **Quality scoring:** Posts are scored for relevance and quality before notification
+- **Robust logging:** All errors and important events are logged to `logs/app.log` with rotation and retention (loguru)
 
 **Detailed Requirements: See instructions.md sections 'Platform Priority Matrix' and 'Link Conversion Priority'**
 
@@ -67,6 +68,14 @@ Personal Reddit scraper for r/FashionReps with intelligent link extraction and T
   # Look for "healthy" status in the output
   ```
 - For production, ensure secrets are set via environment variables and not hardcoded.
+
+## Logging & Secrets Handling
+
+- All logs are written to `logs/app.log` (configurable via `LOG_FILE` env var).
+- Log rotation and retention are enabled (10MB per file, 5 days retention).
+- Errors and important events are logged with stack traces.
+- **Secrets are never logged.**
+- **Best practice:** Always load secrets from environment variables or secure config files. Never log or print secrets.
 
 ## Telegram Bot Registration
 
