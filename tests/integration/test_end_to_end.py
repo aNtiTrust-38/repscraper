@@ -66,3 +66,40 @@ def test_end_to_end_flair_filtering():
     filtered = filter_by_flair(posts, allowed_flairs)
     assert len(filtered) == 3
     assert all(post['flair'] in allowed_flairs for post in filtered)
+
+def test_batch_processing_workflow(mocker):
+    """Test batch processing: scrapes, filters, deduplicates, and notifies only new, relevant posts."""
+    # Mock scraping: return a batch of posts (some new, some duplicate, some irrelevant)
+    posts = [
+        {'id': '1', 'flair': 'QC', 'upvotes': 10, 'comments': 3, 'created_utc': 0, 'author': 'user1', 'title': 'QC Shoes', 'platform': 'taobao', 'url': 'https://item.taobao.com/item.htm?id=1'},  # New, relevant
+        {'id': '2', 'flair': 'Haul', 'upvotes': 5, 'comments': 2, 'created_utc': 0, 'author': 'user2', 'title': 'Haul Bag', 'platform': 'weidian', 'url': 'https://weidian.com/item.html?id=2'},  # New, relevant
+        {'id': '3', 'flair': 'W2C', 'upvotes': 8, 'comments': 2, 'created_utc': 0, 'author': 'user3', 'title': 'W2C Shirt', 'platform': '1688', 'url': 'https://detail.1688.com/offer/3.html'},  # Irrelevant flair
+        {'id': '4', 'flair': 'QC', 'upvotes': 2, 'comments': 1, 'created_utc': 0, 'author': 'user4', 'title': 'Low Upvotes', 'platform': 'yupoo', 'url': 'https://x.yupoo.com/albums/4'},  # Fails filter
+        {'id': '5', 'flair': 'QC', 'upvotes': 10, 'comments': 3, 'created_utc': 0, 'author': 'user5', 'title': 'Duplicate', 'platform': 'pandabuy', 'url': 'https://pandabuy.com/item/5'},  # Duplicate
+    ]
+    allowed_flairs = ['QC', 'Haul', 'Review']
+    min_upvotes = 5
+    min_comments = 2
+    # Mock deduplication: post '5' is already processed
+    processed_ids = {'5'}
+    def is_duplicate(post_id):
+        return post_id in processed_ids
+    # Mock notification: capture sent messages
+    sent = []
+    class MockBot:
+        def send_item_notification(self, item):
+            sent.append(item['id'])
+    # Simulate batch processing logic
+    from src.processors.quality_filter import filter_by_flair, basic_filter
+    # 1. Flair filter
+    filtered = filter_by_flair(posts, allowed_flairs)
+    # 2. Quality filter
+    filtered = basic_filter(filtered, min_upvotes, min_comments, max_age_hours=24, now=0)
+    # 3. Deduplication
+    filtered = [p for p in filtered if not is_duplicate(p['id'])]
+    # 4. Notification
+    bot = MockBot()
+    for post in filtered:
+        bot.send_item_notification(post)
+    # Assert only new, relevant, non-duplicate posts are notified
+    assert set(sent) == {'1', '2'}

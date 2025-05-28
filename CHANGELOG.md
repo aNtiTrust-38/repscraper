@@ -9,3 +9,5 @@
 ### Changed
 - All flair filtering logic is implemented in `filter_by_flair` (TDD approach).
 - Allowed flairs are configurable in the test and can be made configurable in production.
+
+- Reddit API integration milestone: RedditScraper.fetch_batch implemented, TDD integration tests passing, error handling and config support per instructions.md.

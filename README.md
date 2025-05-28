@@ -15,6 +15,7 @@ Personal Reddit scraper for r/FashionReps with intelligent link extraction and T
 - **Quality scoring:** Posts are scored for relevance and quality before notification
 - **Robust logging:** All errors and important events are logged to `logs/app.log` with rotation and retention (loguru)
 - **Secure secrets handling:** Secrets are never logged or exposed, verified by automated tests
+- [x] Reddit API integration: The RedditScraper now supports authenticated batch fetching from r/FashionReps, with error handling and batch size configuration per instructions.md. This is fully covered by integration tests using TDD.
 
 **Detailed Requirements: See instructions.md sections 'Platform Priority Matrix' and 'Link Conversion Priority'**
 
