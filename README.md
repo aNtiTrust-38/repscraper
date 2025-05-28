@@ -55,6 +55,19 @@ Personal Reddit scraper for r/FashionReps with intelligent link extraction and T
    curl http://localhost:8000/health
    ```
 
+## Docker Healthcheck & Production Deployment
+
+- The Docker Compose file includes a healthcheck that pings the `/health` endpoint every 30 seconds.
+- The container uses `restart: unless-stopped` for resilience.
+- Data and logs are persisted via volume mounts (`./data`, `./logs`).
+- Resource limits are set for CPU and memory (customize as needed).
+- To check container health:
+  ```bash
+  docker-compose ps
+  # Look for "healthy" status in the output
+  ```
+- For production, ensure secrets are set via environment variables and not hardcoded.
+
 ## Telegram Bot Registration
 
 1. Message [@BotFather](https://t.me/BotFather) in Telegram.
