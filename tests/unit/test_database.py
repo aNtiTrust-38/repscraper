@@ -15,3 +15,11 @@ def test_processed_post_model():
         content_hash='hash123'
     )
     assert post.id == 'abc123'
+
+def test_duplicate_prevention():
+    from src.database.crud import is_duplicate, mark_processed
+    processed_ids = set()
+    post_id = 'abc123'
+    assert not is_duplicate(post_id, processed_ids)
+    mark_processed(post_id, processed_ids)
+    assert is_duplicate(post_id, processed_ids)

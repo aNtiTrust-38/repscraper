@@ -11,6 +11,7 @@ Personal Reddit scraper for r/FashionReps with intelligent link extraction and T
 - Jadeship link conversion (AllChinaBuy → CNFans → Mulebuy priority)
 - SQLite persistence with quality learning
 - Docker containerized deployment
+- **Duplicate prevention:** Ensures the same post is not processed or notified more than once
 
 **Detailed Requirements: See instructions.md sections 'Platform Priority Matrix' and 'Link Conversion Priority'**
 
@@ -21,4 +22,6 @@ Personal Reddit scraper for r/FashionReps with intelligent link extraction and T
 [Configuration options extracted from instructions.md config specifications]
 
 ## Development
+- All core MVP features (link extraction, filtering, notification formatting, duplicate prevention) are covered by tests and implemented using TDD.
+- In-memory duplicate tracking is used for initial MVP; persistent tracking can be added for production.
 [Development setup following instructions.md implementation guidelines]

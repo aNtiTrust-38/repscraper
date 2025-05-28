@@ -20,3 +20,20 @@ def test_telegram_message_formatting():
     }
     # Should not raise
     bot.send_item_notification(item_data)
+
+def test_simple_telegram_notification_formatting():
+    from src.notifications.telegram_bot import format_simple_message
+    item = {
+        'title': 'Test Item',
+        'author': 'testuser',
+        'upvotes': 10,
+        'comments': 3,
+        'platform': 'taobao',
+        'url': 'https://item.taobao.com/item.htm?id=123456789'
+    }
+    msg = format_simple_message(item)
+    assert 'Test Item' in msg
+    assert 'testuser' in msg
+    assert '10' in msg
+    assert '3' in msg
+    assert 'https://item.taobao.com/item.htm?id=123456789' in msg
