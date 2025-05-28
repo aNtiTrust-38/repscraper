@@ -35,3 +35,7 @@ def calculate_quality_score(post: Dict) -> float:
 
     score = engagement + author_score + content_score + community_score
     return min(score, 1.0)
+
+def filter_by_flair(posts: List[Dict], allowed_flairs: List[str]) -> List[Dict]:
+    """Return only posts whose 'flair' is in allowed_flairs."""
+    return [post for post in posts if post.get('flair', '') in allowed_flairs]

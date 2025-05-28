@@ -35,3 +35,19 @@ def test_quality_scoring():
     assert 0 <= score <= 1
     # Should be high due to good engagement, author, content, and awards
     assert score > 0.7
+
+def test_flair_filtering():
+    """Test that only posts with allowed flairs are processed."""
+    allowed_flairs = ['QC', 'Haul', 'Review']
+    posts = [
+        {'id': '1', 'flair': 'QC', 'upvotes': 10, 'comments': 3, 'created_utc': 0},      # Pass
+        {'id': '2', 'flair': 'Haul', 'upvotes': 5, 'comments': 2, 'created_utc': 0},     # Pass
+        {'id': '3', 'flair': 'W2C', 'upvotes': 8, 'comments': 2, 'created_utc': 0},      # Fail (not allowed)
+        {'id': '4', 'flair': 'Review', 'upvotes': 7, 'comments': 2, 'created_utc': 0},   # Pass
+        {'id': '5', 'flair': '', 'upvotes': 6, 'comments': 2, 'created_utc': 0},         # Fail (no flair)
+    ]
+    # This function does not exist yet; will be implemented in D2
+    from src.processors.quality_filter import filter_by_flair
+    filtered = filter_by_flair(posts, allowed_flairs)
+    assert len(filtered) == 3
+    assert all(post['flair'] in allowed_flairs for post in filtered)

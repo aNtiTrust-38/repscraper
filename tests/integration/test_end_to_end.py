@@ -51,3 +51,18 @@ def test_end_to_end_workflow():
     assert 'Great Find' in msg
     assert 'testuser' in msg
     assert 'https://item.taobao.com/item.htm?id=123456789' in msg
+
+def test_end_to_end_flair_filtering():
+    """End-to-end: Only posts with allowed flairs are notified."""
+    from src.processors.quality_filter import filter_by_flair
+    allowed_flairs = ['QC', 'Haul', 'Review']
+    posts = [
+        {'id': '1', 'flair': 'QC', 'upvotes': 10, 'comments': 3, 'created_utc': 0},      # Pass
+        {'id': '2', 'flair': 'Haul', 'upvotes': 5, 'comments': 2, 'created_utc': 0},     # Pass
+        {'id': '3', 'flair': 'W2C', 'upvotes': 8, 'comments': 2, 'created_utc': 0},      # Fail (not allowed)
+        {'id': '4', 'flair': 'Review', 'upvotes': 7, 'comments': 2, 'created_utc': 0},   # Pass
+        {'id': '5', 'flair': '', 'upvotes': 6, 'comments': 2, 'created_utc': 0},         # Fail (no flair)
+    ]
+    filtered = filter_by_flair(posts, allowed_flairs)
+    assert len(filtered) == 3
+    assert all(post['flair'] in allowed_flairs for post in filtered)
