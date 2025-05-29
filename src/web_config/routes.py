@@ -1,8 +1,8 @@
-from fastapi import APIRouter, HTTPException, Body, Request
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, Body, Request, UploadFile, File
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.exception_handlers import RequestValidationError
 from fastapi.encoders import jsonable_encoder
-from src.web_config.config_manager import load_config, save_config
+from src.web_config.config_manager import load_config, save_config, backup_config, restore_config, CONFIG_PATH, BACKUP_PATH
 from src.web_config.models import ConfigModel
 from pydantic import ValidationError
 import requests
@@ -82,7 +82,7 @@ def get_default_config() -> ConfigModel:
 def get_config():
     try:
         config = load_config()
-        return config.dict()
+        return config.model_dump()
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Config file not found")
     except Exception as e:
@@ -92,7 +92,7 @@ def get_config():
 def save_config_route(config: dict = Body(...)):
     try:
         # Validate config before saving
-        parsed = ConfigModel.parse_obj(config)
+        parsed = ConfigModel.model_validate(config)
         save_config(parsed)
         return {"success": True}
     except ValidationError as e:
@@ -108,7 +108,7 @@ def save_config_route(config: dict = Body(...)):
 @router.post("/config/validate")
 def validate_config_endpoint(config: dict = Body(...)):
     try:
-        ConfigModel.parse_obj(config)
+        ConfigModel.model_validate(config)
         return {"valid": True, "errors": []}
     except ValidationError as e:
         return {"valid": False, "errors": e.errors()}
@@ -116,7 +116,7 @@ def validate_config_endpoint(config: dict = Body(...)):
 @router.get("/config/defaults")
 def get_defaults():
     defaults = get_default_config()
-    return defaults.dict()
+    return defaults.model_dump()
 
 @router.post("/config/test-reddit")
 def test_reddit(body: dict = Body(...)):
@@ -148,6 +148,28 @@ def test_telegram(body: dict = Body(...)):
             return {"success": False, "error": resp.text}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+@router.get("/config/backup")
+def download_config_backup():
+    """Download the current config.yaml as a backup file."""
+    try:
+        backup_config()  # Ensure latest backup
+        return FileResponse(BACKUP_PATH, filename="config.yaml.bak", media_type="application/x-yaml")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Backup failed: {e}")
+
+@router.post("/config/restore")
+def upload_config_restore(file: UploadFile = File(...)):
+    """Restore config.yaml from uploaded backup file."""
+    try:
+        # Save uploaded file to BACKUP_PATH, then restore
+        contents = file.file.read()
+        with open(BACKUP_PATH, "wb") as f:
+            f.write(contents)
+        restore_config()
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Restore failed: {e}")
 
 # Add a global handler for 422 errors (RequestValidationError)
 from fastapi import FastAPI

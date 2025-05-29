@@ -27,3 +27,22 @@ services:
         limits:
           cpus: '0.50'
           memory: 512M
+
+  web-config:
+    build: .
+    container_name: web-config
+    environment:
+      - APP_MODE=web_config
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./src/config/config.yaml:/app/src/config/config.yaml
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s

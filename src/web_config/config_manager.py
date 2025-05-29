@@ -2,6 +2,7 @@ import yaml
 import os
 from src.web_config.models import ConfigModel
 from typing import Any
+import shutil
 
 CONFIG_PATH = "src/config/config.yaml"
 BACKUP_PATH = "src/config/config.yaml.bak"
@@ -12,7 +13,7 @@ def load_config() -> ConfigModel:
     with open(CONFIG_PATH, "r") as f:
         data = yaml.safe_load(f)
     try:
-        return ConfigModel.parse_obj(data)
+        return ConfigModel.model_validate(data)
     except Exception as e:
         raise ValueError(f"Invalid config format: {e}")
 
@@ -26,14 +27,26 @@ def save_config(config: ConfigModel) -> None:
     # Write atomically
     tmp_path = CONFIG_PATH + ".tmp"
     with open(tmp_path, "w") as f:
-        yaml.safe_dump(config.dict(), f, sort_keys=False, allow_unicode=True)
+        yaml.safe_dump(config.model_dump(), f, sort_keys=False, allow_unicode=True)
     os.chmod(tmp_path, 0o600)
     os.replace(tmp_path, CONFIG_PATH)
 
 def backup_config() -> None:
-    # Placeholder: backup config.yaml to .bak
-    raise NotImplementedError
+    """Atomically back up config.yaml to config.yaml.bak."""
+    if not os.path.exists(CONFIG_PATH):
+        raise FileNotFoundError(f"Config file not found: {CONFIG_PATH}")
+    try:
+        shutil.copy2(CONFIG_PATH, BACKUP_PATH)
+        os.chmod(BACKUP_PATH, 0o600)
+    except Exception as e:
+        raise RuntimeError(f"Failed to back up config: {e}")
 
 def restore_config() -> None:
-    # Placeholder: restore config.yaml from .bak
-    raise NotImplementedError 
+    """Atomically restore config.yaml from config.yaml.bak."""
+    if not os.path.exists(BACKUP_PATH):
+        raise FileNotFoundError(f"Backup file not found: {BACKUP_PATH}")
+    try:
+        shutil.copy2(BACKUP_PATH, CONFIG_PATH)
+        os.chmod(CONFIG_PATH, 0o600)
+    except Exception as e:
+        raise RuntimeError(f"Failed to restore config: {e}") 

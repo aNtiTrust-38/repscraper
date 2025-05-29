@@ -4,6 +4,7 @@ from src.web_config.app import app
 from src.web_config.models import ConfigModel
 import os
 import shutil
+from src.web_config import config_manager
 
 client = TestClient(app)
 
@@ -75,4 +76,51 @@ def test_test_telegram_failure(mocker):
     resp = client.post("/config/test-telegram", json={"bot_token": "bad", "chat_id": "bad"})
     assert resp.status_code == 200
     assert resp.json()["success"] is False
-    assert "Unauthorized" in resp.json()["error"] 
+    assert "Unauthorized" in resp.json()["error"]
+
+def test_backup_config_creates_backup(tmp_path, mocker):
+    # Setup: create a dummy config.yaml
+    config_path = tmp_path / "config.yaml"
+    backup_path = tmp_path / "config.yaml.bak"
+    config_path.write_text("test: value\n")
+    mocker.patch.object(config_manager, "CONFIG_PATH", str(config_path))
+    mocker.patch.object(config_manager, "BACKUP_PATH", str(backup_path))
+    # Act
+    config_manager.backup_config()
+    # Assert
+    assert backup_path.exists()
+    assert backup_path.read_text() == "test: value\n"
+
+def test_restore_config_restores_backup(tmp_path, mocker):
+    # Setup: create a dummy config.yaml.bak
+    config_path = tmp_path / "config.yaml"
+    backup_path = tmp_path / "config.yaml.bak"
+    backup_path.write_text("restored: true\n")
+    config_path.write_text("old: false\n")
+    mocker.patch.object(config_manager, "CONFIG_PATH", str(config_path))
+    mocker.patch.object(config_manager, "BACKUP_PATH", str(backup_path))
+    # Act
+    config_manager.restore_config()
+    # Assert
+    assert config_path.read_text() == "restored: true\n"
+
+def test_backup_config_handles_errors(tmp_path, mocker):
+    # Setup: config.yaml does not exist
+    config_path = tmp_path / "config.yaml"
+    backup_path = tmp_path / "config.yaml.bak"
+    mocker.patch.object(config_manager, "CONFIG_PATH", str(config_path))
+    mocker.patch.object(config_manager, "BACKUP_PATH", str(backup_path))
+    # Act & Assert
+    with pytest.raises(FileNotFoundError):
+        config_manager.backup_config()
+
+def test_restore_config_handles_errors(tmp_path, mocker):
+    # Setup: config.yaml.bak does not exist
+    config_path = tmp_path / "config.yaml"
+    backup_path = tmp_path / "config.yaml.bak"
+    config_path.write_text("irrelevant: true\n")
+    mocker.patch.object(config_manager, "CONFIG_PATH", str(config_path))
+    mocker.patch.object(config_manager, "BACKUP_PATH", str(backup_path))
+    # Act & Assert
+    with pytest.raises(FileNotFoundError):
+        config_manager.restore_config() 

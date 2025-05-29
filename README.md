@@ -56,21 +56,28 @@ Personal Reddit scraper for r/FashionReps with intelligent link extraction and T
    ```
 3. **Check health:**
    ```bash
-   curl http://localhost:8000/health
+   curl http://localhost:8000/health  # Scraper health
+   curl http://localhost:8080/health  # Web config UI health
    ```
+4. **Access the web config UI:**
+   Open [http://localhost:8080/static/index.html](http://localhost:8080/static/index.html) in your browser.
 
 ## Docker Healthcheck & Production Deployment
 
-- The Docker Compose file includes a healthcheck that pings the `/health` endpoint every 30 seconds.
-- The container uses `restart: unless-stopped` for resilience.
+- The Docker Compose file now includes two services:
+  - `fashionreps-scraper`: The main batch processing app (health on port 8000)
+  - `web-config`: The web-based configuration UI (health on port 8080)
+- Both containers use `restart: unless-stopped` for resilience.
 - Data and logs are persisted via volume mounts (`./data`, `./logs`).
+- The config file is shared between both services via a volume mount (`./src/config/config.yaml`).
 - Resource limits are set for CPU and memory (customize as needed).
 - To check container health:
   ```bash
   docker-compose ps
-  # Look for "healthy" status in the output
+  # Look for "healthy" status in the output for both services
   ```
 - For production, ensure secrets are set via environment variables and not hardcoded.
+- The web config UI is available at [http://localhost:8080/static/index.html](http://localhost:8080/static/index.html).
 
 ## Logging & Secrets Handling
 
@@ -150,7 +157,15 @@ A modern web UI is now available for all configuration. No more manual YAML edit
 - Edit all config variables (Reddit, Telegram, Scraping, Filters, Platforms, Jadeship, Database, Health, Logging)
 - Real-time validation and error highlighting
 - Save, load defaults, and test config
+- **Backup and restore config:** Download a backup of your config or restore from a backup file directly in the web UI (see below)
 - No more manual YAML editing—UI writes to `src/config/config.yaml`
+
+### Backup & Restore Configuration
+- **Backup:** Click the "Backup" button in the web UI to download a copy of your current config as `config.yaml.bak`.
+- **Restore:** Click the "Restore" button and select a backup file to restore your config. The app will atomically replace your config with the uploaded backup.
+- Advanced users can also use the API endpoints:
+  - `GET /config/backup` (download backup)
+  - `POST /config/restore` (upload and restore backup)
 
 ### Troubleshooting
 - If you see a 422 error, check the highlighted fields and error messages.

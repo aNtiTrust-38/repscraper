@@ -11,6 +11,11 @@
 - Save, load defaults, and test config from browser
 - Replaces manual YAML editing for config
 - Improved backend error handling for robust UX
+- **Docker Compose integration:**
+  - Added `web-config` service for the web-based configuration UI (FastAPI on port 8080)
+  - Both main app and web config UI now run as separate services with shared config/logs/data volumes
+  - Healthchecks for both services (`/health` on 8000 and 8080)
+  - Production deployment hardening: atomic config writes, file permissions, and volume mounts
 
 ### Changed
 - All flair filtering logic is implemented in `filter_by_flair` (TDD approach).
