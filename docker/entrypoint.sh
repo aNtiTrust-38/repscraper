@@ -10,4 +10,4 @@ elif [ "$APP_MODE" = "web_config" ]; then
 else
     echo "[Entrypoint] Unknown APP_MODE: $APP_MODE" >&2
     exit 1
-fi
+fi 

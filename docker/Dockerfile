@@ -14,10 +14,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code
 COPY src/ ./src/
-COPY config.yaml ./src/config/config.yaml
+# Ensure the config directory exists before copying or mounting
+RUN mkdir -p /app/src/config
+# Copy the entire config directory to ensure config.yaml is present
+COPY src/config/ ./src/config/
 
-# Copy entrypoint script
-COPY docker/entrypoint.sh /entrypoint.sh
+# Copy entrypoint script from local docker/ directory into the image
+COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # Create logs and data dirs with correct permissions

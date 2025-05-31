@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   fashionreps-scraper:
-    build: .
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
     container_name: fashionreps-scraper
     environment:
       - REDDIT_CLIENT_ID=${REDDIT_CLIENT_ID}
@@ -29,7 +31,9 @@ services:
           memory: 512M
 
   web-config:
-    build: .
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
     container_name: web-config
     environment:
       - APP_MODE=web_config
@@ -38,7 +42,7 @@ services:
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
-      - ./src/config/config.yaml:/app/src/config/config.yaml
+      - ./src/config:/app/src/config
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]

@@ -1,0 +1,76 @@
+reddit:
+  client_id: ''
+  client_secret: ''
+  user_agent: ''
+  subreddits:
+  - FashionReps
+telegram:
+  bot_token: ''
+  chat_id: ''
+  notification_format: rich
+scraping:
+  batch_interval_hours: 2
+  max_posts_per_batch: 50
+  enable_comments: true
+  monitor_new_posts: true
+  monitor_hot_posts: false
+filters:
+  min_upvotes: 5
+  min_comments: 2
+  max_age_hours: 24
+  quality_threshold: 0.3
+  exclude_deleted: true
+  exclude_removed: true
+platforms:
+  taobao:
+    priority: 1
+    enabled: true
+    weight: 0.4
+  weidian:
+    priority: 2
+    enabled: true
+    weight: 0.25
+  yupoo:
+    priority: 4
+    enabled: true
+    weight: 0.1
+  others:
+    priority: 5
+    enabled: true
+    weight: 0.04
+  pandabuy:
+    priority: 6
+    enabled: false
+    weight: 0.01
+jadeship:
+  enabled: true
+  api_url: https://jadeship.com/api/convert
+  timeout_seconds: 10
+  retry_attempts: 2
+  default_agent: allchinabuy
+  agent_priority:
+  - allchinabuy
+  - cnfans
+  - mulebuy
+  - wegobuy
+  - sugargoo
+  - cssbuy
+  - superbuy
+  - pandabuy
+database:
+  url: sqlite:///data/fashionreps.db
+  backup_enabled: true
+  backup_interval_hours: 24
+  cleanup_old_data: true
+  retention_days: 180
+health:
+  enabled: true
+  telegram_alerts: true
+  discord_webhook: ''
+  pushbullet_token: ''
+  check_interval_minutes: 30
+logging:
+  level: INFO
+  max_file_size_mb: 10
+  backup_count: 5
+  console_output: true
