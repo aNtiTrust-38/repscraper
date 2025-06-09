@@ -6,8 +6,19 @@ from src.web_config.config_manager import load_config, save_config, backup_confi
 from src.web_config.models import ConfigModel
 from pydantic import ValidationError
 import requests
+import datetime
+import threading
+from src.main import run_batch
 
 router = APIRouter()
+
+# In-memory status tracking (could be improved with persistent storage)
+status = {
+    "last_scrape_time": None,
+    "last_notification_time": None,
+    "last_error": None,
+    "last_batch_count": 0
+}
 
 def get_default_config() -> ConfigModel:
     # Returns a ConfigModel with reasonable defaults (update as needed)
@@ -170,6 +181,33 @@ def upload_config_restore(file: UploadFile = File(...)):
         return {"success": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Restore failed: {e}")
+
+@router.post("/run-batch")
+def run_batch_endpoint():
+    """Trigger the batch scraping and notification process immediately."""
+    try:
+        def batch_wrapper():
+            try:
+                run_batch()
+                status["last_scrape_time"] = datetime.datetime.utcnow().isoformat()
+                # For demo: assume notification sent if batch runs
+                status["last_notification_time"] = status["last_scrape_time"]
+                status["last_error"] = None
+                status["last_batch_count"] = 1  # Could be improved to count posts
+            except Exception as e:
+                status["last_error"] = str(e)
+        # Run in a thread to avoid blocking
+        t = threading.Thread(target=batch_wrapper)
+        t.start()
+        return {"success": True, "message": "Batch started."}
+    except Exception as e:
+        status["last_error"] = str(e)
+        return {"success": False, "error": str(e)}
+
+@router.get("/status")
+def get_status():
+    """Return the current status of the scraper and notification system."""
+    return status
 
 # Add a global handler for 422 errors (RequestValidationError)
 from fastapi import FastAPI

@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from .routes import router, add_422_handler
+from fastapi.responses import FileResponse
+import os
 
 app = FastAPI(title="FashionReps Scraper Web Config")
 
@@ -12,6 +14,11 @@ app.mount("/static", StaticFiles(directory="src/web_config/static"), name="stati
 
 # Include API routes
 app.include_router(router)
+
+@app.get("/")
+def root():
+    static_dir = os.path.join(os.path.dirname(__file__), "static")
+    return FileResponse(os.path.join(static_dir, "index.html"))
 
 @app.get("/health")
 def health():

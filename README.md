@@ -1,173 +1,79 @@
 # FashionReps Scraper
 
-## Overview
-Personal Reddit scraper for r/FashionReps with intelligent link extraction and Telegram notifications.
-**Reference: See instructions.md for complete technical specifications**
+A production-grade, Dockerized Reddit scraper for r/FashionReps with a modern web-based configuration UI, robust error handling, Telegram notifications, SQLite persistence, and a focus on maintainability, testability, and operational robustness.
 
 ## Features
-- 2-hour batch processing of r/FashionReps posts
-- Weighted platform priority (Taobao → Weidian → 1688 → Yupoo)
-- Rich Telegram notifications with images and buttons
-- Jadeship link conversion (AllChinaBuy → CNFans → Mulebuy priority)
-- SQLite persistence with quality learning
-- Docker containerized deployment
-- **Duplicate prevention:** In-memory (MVP) and persistent (SQLite) deduplication supported
-- **Quality scoring:** Posts are scored for relevance and quality before notification
-- **Robust logging:** All errors and important events are logged to `logs/app.log` with rotation and retention (loguru)
-- **Secure secrets handling:** Secrets are never logged or exposed, verified by automated tests
-- [x] Reddit API integration: The RedditScraper now supports authenticated batch fetching from r/FashionReps, with error handling and batch size configuration per instructions.md. This is fully covered by integration tests using TDD.
-- [x] Persistent deduplication (SQLite) is now integrated into the batch workflow, ensuring no duplicate notifications across restarts. All core and integration tests pass except for expected failures. See CHANGELOG for details.
-
-**Detailed Requirements: See instructions.md sections 'Platform Priority Matrix' and 'Link Conversion Priority'**
+- Reddit API integration (PRAW), batch scraping, config-driven
+- Link extraction with platform priority matrix
+- Quality filtering and scoring (upvotes, comments, author karma, content, awards)
+- Telegram notification formatting and sending
+- SQLite persistence and deduplication
+- End-to-end integration tests (Reddit → Processing → Telegram)
+- Docker Compose with healthcheck, restart policy, resource limits, and volume mounts
+- `/health` endpoint implemented and tested
+- Environment variable validation, robust logging (loguru), secure secrets handling
+- Telegram alerting utility, integrated error alerting and health monitoring
+- Periodic health checks with alerting and logging
+- Modern web-based configuration UI (FastAPI backend, HTML5/CSS3/JS frontend, Pydantic validation, PyYAML I/O)
+- Real-time validation, test connections, responsive design, tooltips, confirmation dialogs, and robust security
+- API endpoints: `/config` (GET/POST), `/config/validate`, `/config/defaults`, `/config/test-reddit`, `/config/test-telegram`, `/health`
+- Config backup/restore (atomic, UI + API), with tests and documentation
 
 ## Quick Start
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/aNtiTrust-38/repscraper.git
-   cd repscraper
+1. **Clone the repo and enter the directory:**
+   ```sh
+   git clone <repo-url>
+   cd FashionReps\ Scraper
    ```
-2. **Install Python dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   pip install -r requirements-dev.txt
+2. **Create a `.env` file in the project root:**
+   ```env
+   REDDIT_CLIENT_ID=your_reddit_client_id
+   REDDIT_CLIENT_SECRET=your_reddit_client_secret
+   REDDIT_USER_AGENT=your_reddit_user_agent
+   TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+   TELEGRAM_CHAT_ID=your_telegram_chat_id
    ```
-3. **Configure environment variables:**
-   - Copy `.env.example` to `.env` and fill in your Reddit and Telegram credentials.
-4. **Edit `config.yaml`** as needed for batch interval, filters, and platform priorities.
-5. **Run tests:**
-   ```bash
-   pytest
-   ```
-6. **Run the application:**
-   ```bash
-   python src/main.py
-   ```
-
-## Docker Installation
-
-1. **Build the Docker image:**
-   ```bash
-   docker build -t fashionreps-scraper .
-   ```
-2. **Run with Docker Compose:**
-   ```bash
-   docker-compose up -d
-   ```
-3. **Check health:**
-   ```bash
-   curl http://localhost:8000/health  # Scraper health
-   curl http://localhost:8080/health  # Web config UI health
+3. **Build and start the stack:**
+   ```sh
+   docker-compose -f docker/docker-compose.yml up -d --build
    ```
 4. **Access the web config UI:**
-   Open [http://localhost:8080/static/index.html](http://localhost:8080/static/index.html) in your browser.
+   - Open [http://localhost:8080](http://localhost:8080) in your browser.
 
-## Docker Healthcheck & Production Deployment
+## Troubleshooting
 
-- The Docker Compose file now includes two services:
-  - `fashionreps-scraper`: The main batch processing app (health on port 8000)
-  - `web-config`: The web-based configuration UI (health on port 8080)
-- Both containers use `restart: unless-stopped` for resilience.
-- Data and logs are persisted via volume mounts (`./data`, `./logs`).
-- The config file is shared between both services via a volume mount (`./src/config/config.yaml`).
-- Resource limits are set for CPU and memory (customize as needed).
-- To check container health:
-  ```bash
-  docker-compose ps
-  # Look for "healthy" status in the output for both services
-  ```
-- For production, ensure secrets are set via environment variables and not hardcoded.
-- The web config UI is available at [http://localhost:8080/static/index.html](http://localhost:8080/static/index.html).
+- **Environment variables not picked up:**
+  - Ensure `.env` is in the project root and you run Docker Compose from the root.
+  - Use `${VAR}` syntax in `docker-compose.yml`.
+- **File/Directory mount errors:**
+  - Mount the entire `src/config` directory, not just `config.yaml`.
+- **Entrypoint or import errors:**
+  - Set `PYTHONPATH=/app` in `entrypoint.sh`.
+  - Ensure all main scripts and FastAPI app imports are correct.
+- **Web UI not found at `/`:**
+  - The root route now serves the UI (`index.html`).
+- **See logs for details:**
+  - `docker-compose -f docker/docker-compose.yml logs -f`
 
-## Logging & Secrets Handling
+## Telegram Command Interface
 
-- All logs are written to `logs/app.log` (configurable via `LOG_FILE` env var).
-- Log rotation and retention are enabled (10MB per file, 5 days retention).
-- Errors and important events are logged with stack traces.
-- **Secrets are never logged or exposed. This is verified by automated tests.**
-- **Best practice:** Always load secrets from environment variables or secure config files. Never log or print secrets.
+Interact with the scraper in real-time using these commands:
 
-## Health Monitoring & Alerting
+| Command | Description |
+|---------|-------------|
+| `/run-batch` | Run a scraping batch immediately. Use this to force an on-demand scan instead of waiting for the scheduled interval. |
+| `/status` | Check current system status. Returns total processed posts, number processed today, and the timestamp of the last successful batch run. |
 
-- The system includes a periodic health check (default: every 60 seconds) that monitors core dependencies (e.g., database, API connectivity).
-- Health check failures (e.g., DB unreachable) trigger a Telegram alert if alerting is enabled.
-- **Only critical errors** (not warnings or recoverable issues) trigger Telegram alerts.
-- All health check events (start, success, failure) are logged to `logs/app.log`.
-- Health monitoring and alerting can be configured in `config.yaml` under the `health` section:
-  ```yaml
-  health:
-    enabled: true
-    port: 8000
-    telegram_alerts: true
-    discord_webhook: ""
-    pushbullet_token: ""
-  ```
-- To enable/disable Telegram alerts, set `telegram_alerts` in `config.yaml` or use the `TELEGRAM_ALERT_ON_ERROR` environment variable (`1`/`true` to enable).
-- The health check interval can be customized by calling `start_periodic_health_check(interval_sec=YOUR_INTERVAL)` in `src/notifications/health_monitor.py`.
-- To test health monitoring, run:
-  ```bash
-  python src/notifications/health_monitor.py
-  # Or run the full app and simulate a failure
-  ```
-- All health check and alert events are logged for auditing and troubleshooting.
+Key points:
+- **Real-time control:** Execute tasks or check health instantly without altering the schedule.
+- **Auto-listening:** The bot automatically starts polling for commands after startup—no extra setup required.
+- **Security:** The bot *only* processes commands originating from the `TELEGRAM_CHAT_ID` configured in your environment. Messages from any other chat are ignored and logged.
 
-## Telegram Bot Registration
+Use these commands in your Telegram chat to manage the scraper effortlessly.
 
-1. Message [@BotFather](https://t.me/BotFather) in Telegram.
-2. Send `/newbot` and follow the prompts to create a bot.
-3. Save the bot token and add it to your `.env` file as `TELEGRAM_BOT_TOKEN`.
-4. Get your chat ID by messaging [@userinfobot](https://t.me/userinfobot).
-5. Add your chat ID to `.env` as `TELEGRAM_CHAT_ID`.
+## Roadmap
+- Advanced filtering, analytics, export, multi-user, integrations, and rich Telegram features (see scratchpad for details).
 
-## Configuration
-
-- All configuration options are in `config.yaml`:
-  - Batch interval, subreddit, max posts per batch
-  - Quality filters (min upvotes, min comments, max age)
-  - Platform priorities and weights
-  - Jadeship API and agent priorities
-  - Database and logging settings
-  - **Health monitoring and alerting (see `health` section for options)**
-
-## Development
-- All core and advanced features (link extraction, filtering, notification formatting, duplicate prevention, quality scoring) are covered by tests and implemented using TDD.
-- In-memory and persistent deduplication are both supported.
-- The system is ready for end-to-end integration and production deployment.
-[Development setup following instructions.md implementation guidelines]
-- Note: Some integration tests for log file creation are marked xfail on macOS due to temp directory isolation; this is not a logic bug but an environment limitation. See CHANGELOG for details.
-
-## Web-Based Configuration Interface
-
-A modern web UI is now available for all configuration. No more manual YAML editing!
-
-### How to Use
-
-1. **Install dependencies:**
-   ```sh
-   pip3 install -r requirements.txt
-   ```
-2. **Start the web config server:**
-   ```sh
-   uvicorn src.web_config.app:app --reload --host 127.0.0.1 --port 8080
-   ```
-3. **Open the UI:**
-   Go to [http://127.0.0.1:8080/static/index.html](http://127.0.0.1:8080/static/index.html) in your browser.
-
-### Features
-- Edit all config variables (Reddit, Telegram, Scraping, Filters, Platforms, Jadeship, Database, Health, Logging)
-- Real-time validation and error highlighting
-- Save, load defaults, and test config
-- **Backup and restore config:** Download a backup of your config or restore from a backup file directly in the web UI (see below)
-- No more manual YAML editing—UI writes to `src/config/config.yaml`
-
-### Backup & Restore Configuration
-- **Backup:** Click the "Backup" button in the web UI to download a copy of your current config as `config.yaml.bak`.
-- **Restore:** Click the "Restore" button and select a backup file to restore your config. The app will atomically replace your config with the uploaded backup.
-- Advanced users can also use the API endpoints:
-  - `GET /config/backup` (download backup)
-  - `POST /config/restore` (upload and restore backup)
-
-### Troubleshooting
-- If you see a 422 error, check the highlighted fields and error messages.
-- If the server won't start, ensure all dependencies are installed and port 8080 is free.
-- For more help, see the project wiki or contact the maintainer.
+## License
+Personal use only.

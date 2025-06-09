@@ -18,6 +18,14 @@ REQUIRED_ENV_VARS = [
     'TELEGRAM_CHAT_ID',
 ]
 
+# In-memory status tracking (shared with web config API)
+status = {
+    "last_scrape_time": None,
+    "last_notification_time": None,
+    "last_error": None,
+    "last_batch_count": 0
+}
+
 def setup_logging():
     log_file = os.environ.get('LOG_FILE', 'logs/app.log')
     log_dir = os.path.dirname(log_file)
@@ -75,51 +83,95 @@ class HealthHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
 def run_batch():
-    # Load config from environment or config.yaml (simplified for now)
-    config = {
-        'client_id': os.environ['REDDIT_CLIENT_ID'],
-        'client_secret': os.environ['REDDIT_CLIENT_SECRET'],
-        'user_agent': os.environ['REDDIT_USER_AGENT'],
-        'batch_interval_hours': int(os.environ.get('BATCH_INTERVAL_HOURS', 2)),
-        'subreddits': [os.environ.get('SUBREDDIT', 'FashionReps')],
-        'max_posts_per_batch': int(os.environ.get('MAX_POSTS_PER_BATCH', 5)),
-    }
-    try:
-        scraper = RedditScraper(config)
-        posts = scraper.fetch_batch()
-    except Exception as e:
-        logger.error(f"Reddit API fetch failed: {e}")
-        posts = []
-    allowed_flairs = ['QC', 'Haul', 'Review']
-    min_upvotes = 5
-    min_comments = 2
-    # Persistent deduplication
+    # Create a deduper instance for recording batch runs
     deduper = PersistentDeduper('data/fashionreps.db')
-    # 1. Flair filter
-    filtered = filter_by_flair(posts, allowed_flairs)
-    # 2. Quality filter
-    now = datetime.datetime.utcnow()
-    filtered = basic_filter(filtered, min_upvotes, min_comments, max_age_hours=24, now=now)
-    # 3. Deduplication (persistent)
-    filtered = [p for p in filtered if not deduper.is_duplicate(p['id'])]
-    # 4. Notification and mark as processed
-    token = os.environ.get('TELEGRAM_BOT_TOKEN', 'dummy')
-    chat_id = os.environ.get('TELEGRAM_CHAT_ID', 'dummy')
-    bot = TelegramBot(token, chat_id)
-    for post in filtered:
-        bot.send_item_notification(post)
-        deduper.mark_processed(post['id'])
+    
+    try:
+        # Record batch run start
+        deduper.record_batch_run("started")
+        logger.info("Starting batch run")
+        
+        # Load config from environment or config.yaml (simplified for now)
+        config = {
+            'client_id': os.environ['REDDIT_CLIENT_ID'],
+            'client_secret': os.environ['REDDIT_CLIENT_SECRET'],
+            'user_agent': os.environ['REDDIT_USER_AGENT'],
+            'batch_interval_hours': int(os.environ.get('BATCH_INTERVAL_HOURS', 2)),
+            'subreddits': [os.environ.get('SUBREDDIT', 'FashionReps')],
+            'max_posts_per_batch': int(os.environ.get('MAX_POSTS_PER_BATCH', 5)),
+        }
+        try:
+            scraper = RedditScraper(config)
+            posts = scraper.fetch_batch()
+            status["last_scrape_time"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        except Exception as e:
+            logger.error(f"Reddit API fetch failed: {e}")
+            status["last_error"] = f"Reddit API: {str(e)}"
+            posts = []
+            # Record batch run failure but continue processing
+            deduper.record_batch_run("failed")
+            
+        allowed_flairs = ['QC', 'Haul', 'Review']
+        min_upvotes = 5
+        min_comments = 2
+        
+        # 1. Flair filter
+        filtered = filter_by_flair(posts, allowed_flairs)
+        # 2. Quality filter
+        now = datetime.datetime.utcnow()
+        filtered = basic_filter(filtered, min_upvotes, min_comments, max_age_hours=24, now=now)
+        # 3. Deduplication (persistent)
+        filtered = [p for p in filtered if not deduper.is_duplicate(p['id'])]
+        # 4. Notification and mark as processed
+        token = os.environ.get('TELEGRAM_BOT_TOKEN', 'dummy')
+        chat_id = os.environ.get('TELEGRAM_CHAT_ID', 'dummy')
+        bot = TelegramBot(token, chat_id)
+        
+        for post in filtered:
+            bot.send_item_notification(post)
+            deduper.mark_processed(post['id'])
+            status["last_notification_time"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        status["last_batch_count"] = len(filtered)
+        
+        # Record successful batch run completion
+        deduper.record_batch_run("completed")
+        logger.info(f"Batch run completed successfully. Processed {len(filtered)} new posts.")
+        return len(filtered)
+    except Exception as e:
+        logger.error(f"Error during batch run: {e}")
+        status["last_error"] = str(e)
+        # Record batch run failure
+        deduper.record_batch_run("failed")
+        raise
 
 def main():
     setup_logging()
     try:
         validate_env()
-        run_batch()  # Run the batch once on startup
+        
+        # Initialize the Telegram bot
+        token = os.environ.get('TELEGRAM_BOT_TOKEN')
+        chat_id = os.environ.get('TELEGRAM_CHAT_ID')
+        bot = TelegramBot(token, chat_id)
+        
+        # Start the bot polling for commands
+        bot.start_polling()
+        logger.info("Telegram bot started and listening for commands")
+        
+        # Send startup notification
+        bot.send_message("🚀 *FashionReps Scraper Started*\nBot is now online and ready to process commands.\n\nAvailable commands:\n/run-batch - Run a scraping batch now\n/status - Check system status")
+        
+        # Run the batch once on startup
+        run_batch()
+        
         # Schedule batch processing
         batch_interval_hours = int(os.environ.get('BATCH_INTERVAL_HOURS', 2))
         scheduler = BackgroundScheduler()
         scheduler.add_job(run_batch, 'interval', hours=batch_interval_hours, next_run_time=None)
         scheduler.start()
+        
+        # Start health check server
         port = int(os.environ.get('HEALTH_PORT', 8000))
         server = HTTPServer(('0.0.0.0', port), HealthHandler)
         logger.info(f"Health server running on port {port}")

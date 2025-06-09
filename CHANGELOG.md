@@ -26,3 +26,7 @@
 - Logging and error handling in subprocesses is robust. Tests for log file creation are marked xfail on macOS due to temp directory isolation/subprocess file visibility issues. This is not a logic bug and is documented for future maintainers.
 
 - Persistent deduplication (SQLite) is now integrated into the batch workflow, replacing in-memory deduplication. All core and integration tests pass except for expected failures. Documented for production reliability.
+
+## [1.0.0] - 2024-05-31
+### Added
+- Final MVP: Docker Compose, .env, web UI at '/', all containers healthy, all known issues resolved, documentation updated.

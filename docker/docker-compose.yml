@@ -15,7 +15,7 @@ services:
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
-      - ./config.yaml:/app/config.yaml
+      - ./src/config:/app/src/config
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]

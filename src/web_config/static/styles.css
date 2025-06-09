@@ -65,6 +65,13 @@ input[type="checkbox"] {
     width: auto;
     margin-right: 0.5rem;
 }
+input[type="text"], input[type="password"] {
+    width: 100%;
+    min-width: 350px;
+    max-width: 600px;
+    box-sizing: border-box;
+    font-size: 1rem;
+}
 .form-actions {
     display: flex;
     gap: 1rem;
